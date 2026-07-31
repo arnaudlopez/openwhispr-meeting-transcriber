@@ -1,0 +1,101 @@
+diff --git a/Sources/FluidAudioCLI/Commands/SortformerCommand.swift b/Sources/FluidAudioCLI/Commands/SortformerCommand.swift
+index a39f3c2..eee7f8a 100644
+--- a/Sources/FluidAudioCLI/Commands/SortformerCommand.swift
++++ b/Sources/FluidAudioCLI/Commands/SortformerCommand.swift
+@@ -46,6 +46,7 @@ enum SortformerCommand {
+         var palettized = false
+         var offline = false
+         var computeUnitsName: String?
++        var enrollments: [(name: String, path: String)] = []
+ 
+         // Parse remaining arguments
+         var i = 1
+@@ -107,6 +108,17 @@ enum SortformerCommand {
+                     computeUnitsName = arguments[i + 1].lowercased()
+                     i += 1
+                 }
++            case "--enroll":
++                if i + 1 < arguments.count {
++                    let value = arguments[i + 1]
++                    if let separator = value.firstIndex(of: "=") {
++                        enrollments.append((
++                            name: String(value[..<separator]),
++                            path: String(value[value.index(after: separator)...])
++                        ))
++                    }
++                    i += 1
++                }
+             case "--threshold":
+                 if i + 1 < arguments.count, let v = Float(arguments[i + 1]) {
+                     predScoreThreshold = v
+@@ -224,6 +236,27 @@ enum SortformerCommand {
+             exit(1)
+         }
+ 
++        if !enrollments.isEmpty {
++            do {
++                for enrollment in enrollments {
++                    let samples = try AudioConverter(debug: config.debugMode).resampleAudioFile(
++                        path: enrollment.path)
++                    let speaker = try diarizer.enrollSpeaker(
++                        withAudio: samples,
++                        sourceSampleRate: 16_000,
++                        named: enrollment.name,
++                        overwritingAssignedSpeakerName: false)
++                    print(
++                        "Enrolled \(enrollment.name): \(speaker?.description ?? "not detected")"
++                            + (speaker.map { " (slot \($0.index))" } ?? "")
++                    )
++                }
++            } catch {
++                print("ERROR: Failed to enroll speakers: \(error)")
++                exit(1)
++            }
++        }
++
+         // Load audio
+         do {
+             print("Loading audio...")
+@@ -249,7 +282,10 @@ enum SortformerCommand {
+             fflush(stdout)
+             let startTime = Date()
+             var lastProgressPrint = Date()
+-            let result = try diarizer.processComplete(audioSamples) { processed, total, chunks in
++            let result = try diarizer.processComplete(
++                audioSamples,
++                keepingEnrolledSpeakers: !enrollments.isEmpty
++            ) { processed, total, chunks in
+                 let now = Date()
+                 if now.timeIntervalSince(lastProgressPrint) >= 2.0 {
+                     let percent = Float(processed) / Float(total) * 100
+@@ -281,7 +317,9 @@ enum SortformerCommand {
+                 let start = String(format: "%.2f", segment.startTime)
+                 let end = String(format: "%.2f", segment.endTime)
+                 let dur = String(format: "%.2f", segment.duration)
+-                print("\(segment.speakerLabel): \(start)s - \(end)s (\(dur)s)")
++                let label = result.speakers[segment.speakerIndex]?.description
++                    ?? segment.speakerLabel
++                print("\(label): \(start)s - \(end)s (\(dur)s)")
+             }
+ 
+             // Print speaker probabilities summary
+@@ -317,8 +355,10 @@ enum SortformerCommand {
+ 
+                 var segmentDicts: [[String: Any]] = []
+                 for segment in segments {
++                    let label = result.speakers[segment.speakerIndex]?.description
++                        ?? segment.speakerLabel
+                     segmentDicts.append([
+-                        "speaker": segment.speakerLabel,
++                        "speaker": label,
+                         "speakerIndex": segment.speakerIndex,
+                         "startTimeSeconds": segment.startTime,
+                         "endTimeSeconds": segment.endTime,
+@@ -445,6 +485,7 @@ enum SortformerCommand {
+                 --compute-units <units>     CoreML compute units: cpu | cpuAndGPU | ane | all.
+                                             Default auto-selects; use cpu on pre-M1 devices
+                                             (e.g. A14) where .all is slow or incompatible.
++                --enroll <name=audio>       Prime one known speaker before the meeting (repeatable)
+                 --debug                     Enable debug mode
+                 --output <file>             Save results to JSON file
+                 --onset <value>             Onset threshold for speech detection (default: 0.5)
