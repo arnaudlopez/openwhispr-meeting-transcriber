@@ -13,10 +13,11 @@
   <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-111111?logo=apple">
   <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-arm64-6f42c1">
   <img alt="Node 24" src="https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white">
-  <img alt="Private project" src="https://img.shields.io/badge/repository-private-d73a49">
+  <a href="https://github.com/arnaudlopez/openwhispr-meeting-transcriber/actions/workflows/transcription-tests.yml"><img alt="Tests de transcription" src="https://github.com/arnaudlopez/openwhispr-meeting-transcriber/actions/workflows/transcription-tests.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-2ea44f"></a>
 </p>
 
-> Adaptation privée de [OpenWhispr](https://github.com/OpenWhispr/openwhispr),
+> Adaptation open source de [OpenWhispr](https://github.com/OpenWhispr/openwhispr),
 > distribuée sous sa licence MIT. Ce dépôt n’est pas un produit officiel du projet amont.
 
 ## Pourquoi ce projet ?
@@ -229,6 +230,15 @@ Le README original d’OpenWhispr est conservé dans
 - FluidAudio : récupéré et compilé par le script de setup depuis son dépôt amont épinglé.
 - Nemotron : poids non inclus dans Git, téléchargés depuis l’export sherpa‑onnx épinglé ;
   consultez la licence Open Model Development and Weight License du modèle NVIDIA avant redistribution.
+
+## Contribuer
+
+Les corrections, retours sur la qualité de transcription et améliorations de la diarisation
+sont bienvenus. Consultez [CONTRIBUTING.md](CONTRIBUTING.md) avant d’ouvrir une pull request.
+N’ajoutez jamais au dépôt de clé API, d’enregistrement de réunion ou de profil vocal réel.
+
+Pour signaler une vulnérabilité, utilisez la procédure privée décrite dans
+[SECURITY.md](SECURITY.md), et non une issue publique.
 
 ## Remerciements
 

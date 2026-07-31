@@ -1,58 +1,39 @@
-# Security Policy
+# Politique de sécurité
 
-## Supported Versions
+## Signaler une vulnérabilité
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.7.x   | :white_check_mark: |
-| < 1.7   | :x:                |
+N’ouvrez pas d’issue publique pour une vulnérabilité ou une fuite de données.
 
-## Reporting a Vulnerability
+Utilisez le bouton **Report a vulnerability** dans l’onglet
+[Security](https://github.com/arnaudlopez/openwhispr-meeting-transcriber/security) du dépôt.
+GitHub transmettra le rapport et les échanges de manière privée au mainteneur.
 
-**Please do not open public issues for security vulnerabilities.**
+Indiquez si possible :
 
-Use [GitHub's private vulnerability reporting](https://github.com/OpenWhispr/openwhispr/security/advisories/new)
-to submit a report. You can also email security@openwhispr.com.
+- la version ou le commit concerné ;
+- les conditions et étapes de reproduction ;
+- l’impact observé ou potentiel ;
+- une piste de correction, si vous en avez une.
 
-We will acknowledge your report within **48 hours** and aim to release a fix
-within **7 days** for critical issues.
+## Périmètre prioritaire
 
-## Scope
+- exposition de clés API ou de données de réunion ;
+- exécution de code via un fichier audio, vidéo ou JSON préparé ;
+- écriture ou lecture inattendue en dehors des chemins choisis ;
+- contournement du Trousseau macOS ou persistance involontaire d’un secret ;
+- dépendance ou script d’installation compromis.
 
-The following are in scope:
+## Modèle de données
 
-- Remote code execution via crafted audio files or transcription output
-- Privilege escalation through native binaries (key listeners, paste helpers)
-- Credential exposure (API keys, OAuth tokens, database credentials)
-- Cross-site scripting (XSS) in the Electron renderer
-- Insecure IPC between main and renderer processes
-- Supply chain attacks via dependencies or native compilation
+La diarisation, les profils vocaux, Nemotron et l’alignement sont locaux. Les morceaux
+audio à transcrire sont toutefois envoyés au fournisseur d’API choisi. Les utilisateurs
+doivent donc vérifier que cet envoi est compatible avec leurs obligations de confidentialité.
 
-Out of scope:
+Les clés API ne doivent jamais être enregistrées dans Git. La micro‑app utilise le
+Trousseau macOS ; le pipeline en ligne de commande peut charger une clé depuis le fichier
+local ignoré `.env.local`.
 
-- Issues requiring physical access to an already-unlocked machine
-- Denial of service against the local application
-- Social engineering
+## Divulgation coordonnée
 
-## Security Model
-
-- **Local-first audio processing** — Audio is transcribed on-device using
-  whisper.cpp or nvidia parakeet. Recordings are not sent to external servers unless explicitly
-  configured by the user.
-- **Credential storage** — API keys provided by users (BYOK) and enterprise
-  cloud credentials (AWS, Azure, Vertex) are encrypted at rest using
-  Electron's `safeStorage` API, which delegates to the OS keychain (Keychain
-  on macOS, DPAPI on Windows, libsecret on Linux). Encrypted blobs are stored
-  under `userData/secure-keys/`. Non-secret preferences (regions, endpoints,
-  hotkeys, flags) continue to live in `.env`. On Linux systems without a
-  keyring, secrets fall back to plaintext to match Electron's default
-  behavior.
-- **Native binaries** — Platform-specific helpers (key listeners, paste
-  utilities) are compiled from source during the build process.
-- **Context isolation** — The Electron renderer runs with context isolation
-  enabled and a restricted preload bridge.
-
-## Disclosure Policy
-
-We follow coordinated disclosure. Once a fix is released, we will credit
-reporters in the changelog (unless they prefer to remain anonymous).
+Merci de laisser au mainteneur un délai raisonnable pour analyser et corriger le problème
+avant toute publication. Le crédit sera attribué au chercheur qui le souhaite.
